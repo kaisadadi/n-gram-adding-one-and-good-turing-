@@ -4,4 +4,4 @@
 
 为了适应多种方式的数据读取，设立dataset类，mode/word/type的含义详见report文件夹下的报告。
 
-对实验结果的分析，见report文件夹
+对实验结果的分析，见report，report中的测试指标为perplexity，即困惑度
