@@ -5,3 +5,5 @@
 为了适应多种方式的数据读取，设立dataset类，mode/word/type的含义详见report。
 
 对实验结果的分析，见report，report中的测试指标为perplexity，即困惑度
+
+推荐一个挺好的pdf：http://www.nlpr.ia.ac.cn/cip/ZongReportandLecture/Lecture_on_NLP/Chp-05.pdf
