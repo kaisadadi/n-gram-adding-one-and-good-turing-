@@ -1,0 +1,3 @@
+[工商/n  银行/n  河南省/ns  驻马店/ns  分行/n]nt  积极/ad  捐助/v  “/w  希望/vn  工程/n  ”/w  （/w  图片/n  ）/w  
+[工商/n  银行/n  河南省/ns  驻马店/ns  分行/n]nt  积极/ad  捐助/v  “/w  希望/vn  工程/n  ”/w  ，/w  先后/d  与/p  团/n  地委/n  联合/v  举办/v  “/w  希望/vn  工程/n  ”/w  有奖/vn  储蓄/vn  等/u  活动/vn  ，/w  将/p  ３８０万/m  元/q  储蓄/n  利息/n  捐/v  给/v  “/w  希望/vn  工程/n  ”/w  。/w  全行/n  员工/n  近年来/l  还/d  捐/v  资/Ng  ２０万/m  元/q  支持/v  教育/vn  事业/n  。/w  日前/t  ，/w  该行/r  行长/n  孟/nr  凤岭/nr  （/w  中/f  ）/w  率/v  员工/n  将近/d  ３万/m  元/q  的/u  学习/vn  用品/n  送/v  到/v  对口/a  扶贫/vn  单位/n  ———/w  [上蔡县/ns  崇礼乡/ns  张庄村/ns  小学/n]nt  。/w  
+（/w  李/nr  文波/nr  摄/Vg  ）/w  

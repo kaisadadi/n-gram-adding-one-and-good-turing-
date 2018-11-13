@@ -1,0 +1,3 @@
+男篮/n  联赛/n  山东队/nt  客场/n  告负/v  
+本报/r  讯/Ng  记者/n  薛/nr  原/nr  报道/v  ：/w  １月/t  １４日/t  ，/w  [广东/ns  宏远队/nt]nt  凭借/p  外线/n  优势/n  ，/w  主场/n  以/p  ９７∶８５/m  击败/v  了/u  本/r  赛季/n  势头/n  正/d  盛/v  的/u  [山东/ns  宝元队/nt]nt  ，/w  赢得/v  [希尔顿/nz  全国/n  男篮/n  甲Ａ/nz  联赛/n]nz  第十五/m  轮/q  的/u  胜利/vn  。/w  
+本轮/r  其余/r  比赛/vn  结果/n  为/v  ：/w  八一队/nt  主场/n  ８８∶７７/m  战胜/v  [北京/ns  首钢队/nt]nt  ，/w  [四川/ns  蓝剑队/nt]nt  主场/n  以/p  ６５∶８７/m  负于/v  [沈阳/ns  军区队/n]nt  ，/w  [空军/n  联航队/nt]nt  客场/n  ８３∶８８/m  不/d  敌/Vg  [济南/ns  军区队/n]nt  ，/w  [浙江/ns  中欣队/nt]nt  主场/n  以/p  ５０∶６１/m  败/v  给/v  [上海/ns  东方队/nt]nt  ，/w  [辽宁/ns  沈飞/nz  客车队/n]nt  主场/n  以/p  ８３∶７２/m  战胜/v  [江苏/ns  南钢队/nt]nt  。/w  
