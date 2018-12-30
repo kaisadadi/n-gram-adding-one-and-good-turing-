@@ -36,8 +36,28 @@ class Poem_DataSet():
 
 
 if __name__ == "__main__":
-    DS = Poem_DataSet()
+    '''DS = Poem_DataSet()
     for idx, (X,Y) in enumerate(DS.fetch_data(batch_size=1)):
         print(X)
         print(Y)
-        break
+        break'''
+    data, word2idx, idx2word = get_raw_data()
+    sum = 0
+    calc_word = {}
+    for poem in data:
+        for word in poem:
+            if word == 8292:
+                continue
+            sum += 1
+            if word not in calc_word.keys():
+                calc_word[word] = 0
+            calc_word[word] += 1
+
+    sorted_word = sorted(calc_word.items(), key = lambda x: x[1], reverse=True)
+    cnt = 0
+    for a in range(len(sorted_word)):
+        cnt += sorted_word[a][1]
+        if cnt >= 0.99 * sum:
+            print(a)
+            break
+        print(idx2word[sorted_word[a][0]], sorted_word[a][1])
