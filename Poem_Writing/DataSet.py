@@ -9,8 +9,6 @@ def get_raw_data(file_dir = r"tang.npz"):
     out_data = []
     for val in data:
         val = list(val)
-        pos = val.index(word2idx["<START>"])
-        #out_data.append(val[pos: len(val)])
         out_data.append(val)
     return out_data, word2idx, idx2word
 
@@ -34,13 +32,48 @@ class Poem_DataSet():
                 out_X = []
                 out_Y = []
 
+class Seq_Dataset():
+    def __init__(self):
+        self.rawdata, self.word2idx, self.idx2word = get_raw_data()
+        self.len = len(self.rawdata)
+        start_sign = self.word2idx["<START>"]
+        break_sign = [self.word2idx["，"], self.word2idx["。"], self.word2idx["<EOP>"]]
+        self.data = []
+        for poem in self.rawdata:
+            temp_data = []
+            pos = poem.index(start_sign)
+            t1 = pos
+            for move in range(pos+1, len(poem)):
+                if poem[move] in break_sign and move - t1 >= 3:
+                    temp_data.append(poem[t1+1 : move])
+                    t1 = move
+            for seq_num in range(len(temp_data) - 1):
+                if len(temp_data[seq_num]) != 5 or len(temp_data[seq_num + 1]) != 5:
+                    break
+                self.data.append([temp_data[seq_num], temp_data[seq_num + 1]])
+
+    def fetch_data(self, batch_size):
+        random.shuffle(self.data)
+        cnt = 0
+        out_X = []
+        out_Y = []
+        for k in range(len(self.data)):
+            out_X.append(self.data[k][0])
+            out_Y.append(self.data[k][1])
+            cnt += 1
+            if cnt == batch_size:
+                cnt = 0
+                yield out_X, out_Y
+                out_X = []
+                out_Y = []
 
 if __name__ == "__main__":
-    '''DS = Poem_DataSet()
+    '''
+    DS = Poem_DataSet()
     for idx, (X,Y) in enumerate(DS.fetch_data(batch_size=1)):
         print(X)
         print(Y)
-        break'''
+        break
     data, word2idx, idx2word = get_raw_data()
     sum = 0
     calc_word = {}
@@ -61,3 +94,9 @@ if __name__ == "__main__":
             print(a)
             break
         print(idx2word[sorted_word[a][0]], sorted_word[a][1])
+    '''
+    gg = Seq_Dataset()
+    for idx, val in enumerate(gg.fetch_data(batch_size=1)):
+        print(val[0])
+        print(val[1])
+        break

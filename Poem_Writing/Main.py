@@ -53,6 +53,28 @@ def generate_poem(net, start_words, word2idx, idx2word, expected_length = 26):
         write_sequence.append(int(torch.argmax(prob).cpu().data[0].numpy()))
     return write_sequence
 
+def generate_seq(net, start_words, prefix, word2idx, idx2word, expected_length = 4):
+    #从序列到序列的诗句
+    if prefix != None:
+        for idx, val in enumerate(prefix):
+            prefix[idx] = word2idx[val]
+        prefix = Variable(torch.from_numpy(np.array(prefix).long().view(1, -1))).cuda()
+        _, hidden = net.forward(prefix)
+    write_sequence = [[]]
+    for word in start_words:
+        write_sequence[-1].append(word2idx[word])
+    while len(write_sequence) < expected_length:
+        results, hidden = net.forward(Variable(torch.from_numpy(np.array(write_sequence[-1])).long().view(1, -1)).cuda(), hidden)
+        write_sequence.append([])
+        for idx in results:
+            write_sequence[-1].append(idx)
+    for idx1, sequence in enumerate(write_sequence):
+        for idx2, val in enumerate(sequence):
+            write_sequence[idx1][idx2] = idx2word(write_sequence[idx1][idx2])
+    return write_sequence
+
+
+
 def train_net(net, epoch, word2idx, idx2word):
     #train net
     load_num = 0
