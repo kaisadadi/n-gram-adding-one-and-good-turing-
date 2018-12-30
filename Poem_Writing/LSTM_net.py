@@ -17,13 +17,13 @@ class E_D_net(nn.Module):
         embed = self.embedding(x)
         embed = torch.transpose(embed, 0, 1)
         if hidden_state == None:
-            hidden_state = (Variable(torch.zeros(2, embed.shape[1], self.hidden_size)), Variable(torch.zeros(2, embed.shape[1], self.hidden_size)))
+            hidden_state = (Variable(torch.zeros(2, embed.shape[1], self.hidden_size)).cuda(), Variable(torch.zeros(2, embed.shape[1], self.hidden_size)).cuda())
         _, (encoder_result_h, encoder_result_c) = self.encoder(embed, hidden_state)
-        zero_input = Variable(torch.zeros(embed.shape[0], embed.shape[1], embed.shape[2]))  #seqlen bs input_size
-        decoder_result, _ = self.decoder(zero_input, (encoder_result_h, encoder_result_c))
+        zero_input = Variable(torch.zeros(embed.shape[0], embed.shape[1], embed.shape[2])).cuda()  #seqlen bs input_size
+        decoder_result, hidden = self.decoder(zero_input, (encoder_result_h, encoder_result_c))
         out_result = torch.transpose(decoder_result, 0, 1)  #bs seqlen hidden_size
         out_result = self.fc(out_result)
-        return out_result
+        return out_result, hidden
 
 class LSTM_net(nn.Module):
     def __init__(self, voc_size, embedding_dim, hidden_dim):
