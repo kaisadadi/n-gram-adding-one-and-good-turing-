@@ -103,8 +103,10 @@ def train_net(net, epoch, word2idx, idx2word):
             torch.save(net.state_dict(), os.path.join(model_path, "model-%d.pkl" %(nowepoch + 1)))
 
 
-
-
+def eval_net(net, word2idx, idx2word, startword, prefix, load_num):
+    net.load_state_dict(torch.load(os.path.join(model_path, "model-%d.pkl" % load_num)))
+    poem = generate_seq(net, start_words=startword, prefix=prefix, word2idx=word2idx, idx2word=idx2word)
+    print(poem)
 
 if __name__ == "__main__":
     data, word2idx, idx2word = get_raw_data()
@@ -114,3 +116,4 @@ if __name__ == "__main__":
         net = LSTM_net(voc_size = 8300, embedding_dim = 128, hidden_dim = 256)
     net = net.cuda()
     train_net(net=net, epoch = 1024, word2idx=word2idx, idx2word=idx2word)
+    eval_net(net, word2idx, idx2word, "不如来饮酒", "相对醉厌厌", load_num=64)
