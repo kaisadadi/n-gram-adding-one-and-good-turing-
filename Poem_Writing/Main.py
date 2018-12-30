@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch
 from DataSet import get_raw_data
 import numpy as np
-from LSTM_net import LSTM_net, E_D_net
+from LSTM_net import LSTM_net, E_D_net, bi_E_D_net
 import argparse
 import os
 

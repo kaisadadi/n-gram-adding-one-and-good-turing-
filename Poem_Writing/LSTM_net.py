@@ -31,16 +31,38 @@ class LSTM_net(nn.Module):
         super(LSTM_net, self).__init__()
         self.embedding = nn.Embedding(voc_size, embedding_dim)
         self.hidden_size = hidden_dim
-        self.LSTM = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_dim, num_layers=2)
+        self.LSTM = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_dim, num_layers=2, bidirectional=True)
         self.fc = nn.Linear(hidden_dim, voc_size)
 
     def forward(self, x, hidden_state=None):
         embed = self.embedding(x)
         embed = torch.transpose(embed, 0, 1)
         if hidden_state == None:
-            hidden_state = (Variable(torch.zeros(2, embed.shape[1], self.hidden_size)), Variable(torch.zeros(2, embed.shape[1], self.hidden_size)))
+            hidden_state = (Variable(torch.zeros(4, embed.shape[1], self.hidden_size)), Variable(torch.zeros(2, embed.shape[1], self.hidden_size)))
         out_result, hidden = self.LSTM(embed, hidden_state)
         out_result = torch.transpose(out_result, 0, 1)  #bs seqlen hidden_size
+        out_result = self.fc(out_result)
+        return out_result, hidden
+
+class bi_E_D_net(nn.Module):
+    def __init__(self, voc_size, embedding_dim, hidden_dim):
+        #an LSTM based encoder-decoder framework
+        super(bi_E_D_net, self).__init__()
+        self.embedding = nn.Embedding(voc_size, embedding_dim)
+        self.hidden_size = hidden_dim
+        self.encoder = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_dim, num_layers=2, bidirectional=True)
+        self.decoder = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_dim, num_layers=2, bidirectional=True)
+        self.fc = nn.Linear(hidden_dim, voc_size)
+
+    def forward(self, x, hidden_state=None):
+        embed = self.embedding(x)
+        embed = torch.transpose(embed, 0, 1)
+        if hidden_state == None:
+            hidden_state = (Variable(torch.zeros(4, embed.shape[1], self.hidden_size)).cuda(), Variable(torch.zeros(4, embed.shape[1], self.hidden_size)).cuda())
+        _, (encoder_result_h, encoder_result_c) = self.encoder(embed, hidden_state)
+        zero_input = Variable(torch.zeros(embed.shape[0], embed.shape[1], embed.shape[2])).cuda()  #seqlen bs input_size
+        decoder_result, hidden = self.decoder(zero_input, (encoder_result_h, encoder_result_c))
+        out_result = torch.transpose(decoder_result, 0, 1)  #bs seqlen hidden_size
         out_result = self.fc(out_result)
         return out_result, hidden
 
