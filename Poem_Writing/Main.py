@@ -48,9 +48,10 @@ def generate_poem(net, start_words, word2idx, idx2word, expected_length = 26):
 def generate_seq(net, start_words, prefix, word2idx, idx2word, expected_length = 4):
     #从序列到序列的诗句
     if prefix != None:
+        pre = []
         for idx, val in enumerate(prefix):
-            prefix[idx] = word2idx[val]
-        prefix = Variable(torch.from_numpy(np.array(prefix).long().view(1, -1))).cuda()
+            pre.append(word2idx[val])
+        prefix = Variable(torch.from_numpy(np.array(pre)).long().view(1, -1)).cuda()
         _, hidden = net.forward(prefix)
     else:
         hidden = None
@@ -111,9 +112,9 @@ def eval_net(net, word2idx, idx2word, startword, prefix, load_num):
 if __name__ == "__main__":
     data, word2idx, idx2word = get_raw_data()
     if args.task == "seq":
-        net = E_D_net(voc_size = 8300, embedding_dim = 128, hidden_dim = 256)
+        net = E_D_net(voc_size = 8300, embedding_dim = 512, hidden_dim = 512)
     else:
         net = LSTM_net(voc_size = 8300, embedding_dim = 128, hidden_dim = 256)
     net = net.cuda()
     train_net(net=net, epoch = 1024, word2idx=word2idx, idx2word=idx2word)
-    eval_net(net, word2idx, idx2word, "不如来饮酒", "相对醉厌厌", load_num=64)
+    #eval_net(net, word2idx, idx2word, "不如来饮酒", "相对醉厌厌", load_num=64)
