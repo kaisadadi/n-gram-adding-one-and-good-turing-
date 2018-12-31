@@ -71,7 +71,7 @@ class Seq_Dataset():
 
         #f.close()
 
-    def fetch_data(self, batch_size, self_embedding=False):
+    def fetch_data(self, batch_size, self_embedding=None):
         random.shuffle(self.data)
         cnt = 0
         out_X = []
@@ -82,18 +82,25 @@ class Seq_Dataset():
             cnt += 1
             if cnt == batch_size:
                 cnt = 0
-                if self_embedding == True:
+                if self_embedding == None:
                     yield out_X, out_Y
                 else:
-                    yield self.embeded(out_X), self.embeded(out_Y)
+                    yield self.embeded(out_X, self_embedding), self.embeded(out_Y, self_embedding)
                 out_X = []
                 out_Y = []
 
-    def embeded(self, x):
-        for batch in range(len(x)):
-            for idx in range(len(x[batch])):
-                x[batch][idx] = self.embedding[self.idx2word[x[batch][idx]]]
-        return x
+    def embeded(self, x, self_embedding):
+        len_x = len(x)
+        len_batch = len(x[0])  
+        out = []
+        for batch in range(len_x):
+            out.append([])
+            for idx in range(len_batch):
+                try: 
+                    out[-1].append(self_embedding[self.idx2word[x[batch][idx]]])
+                except:
+                    gg
+        return out
 
 if __name__ == "__main__":
     '''

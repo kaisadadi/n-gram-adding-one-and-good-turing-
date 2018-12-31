@@ -48,14 +48,15 @@ class bi_E_D_net(nn.Module):
     def __init__(self, voc_size, embedding_dim, hidden_dim):
         #an LSTM based encoder-decoder framework
         super(bi_E_D_net, self).__init__()
-        self.embedding = nn.Embedding(voc_size, embedding_dim)
+        #self.embedding = nn.Embedding(voc_size, embedding_dim)
         self.hidden_size = hidden_dim
         self.encoder = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_dim, num_layers=2, bidirectional=True)
         self.decoder = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_dim, num_layers=2, bidirectional=True)
-        self.fc = nn.Linear(hidden_dim, voc_size)
+        self.fc = nn.Linear(2 * hidden_dim, voc_size)
 
     def forward(self, x, hidden_state=None):
-        embed = self.embedding(x)
+        #embed = self.embedding(x)
+        embed = x
         embed = torch.transpose(embed, 0, 1)
         if hidden_state == None:
             hidden_state = (Variable(torch.zeros(4, embed.shape[1], self.hidden_size)).cuda(), Variable(torch.zeros(4, embed.shape[1], self.hidden_size)).cuda())

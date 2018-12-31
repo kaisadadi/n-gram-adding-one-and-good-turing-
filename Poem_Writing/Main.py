@@ -34,13 +34,18 @@ def cross_entropy(X, Y):
 
 def mse_loss(X, Y, self_embedding):
     seq_size = Y.shape[1]
+    #print(seq_size)
     X = X.view(-1, 8300)
-    Y = Y.view(-1, 1)
+    Y = Y.view(-1, 128)
     X = nn.Softmax()(X)
-    X = torch.argmax(X)
-    X = F.embedding(X, self_embedding)
-    Y = F.embedding(Y, self_embedding)
-    return nn.MSELoss(X, Y) * seq_size
+    X = torch.argmax(X, dim=1)
+    #print(X)
+    #X = F.embedding(X.long(), self_embedding)
+    embedding = nn.Embedding.from_pretrained(self_embedding, freeze=False)
+    X = embedding(X)
+    #print(X)
+    #print(nn.MSELoss()(X, Y.double()))
+    return nn.MSELoss()(X, Y.double()) * seq_size
 
 
 
@@ -99,7 +104,7 @@ def train_net(net, epoch, word2idx, idx2word, self_embedding=None):
     for nowepoch in range(load_num, epoch):
         print("epoch = %d" %(nowepoch + 1))
         for idx, val in enumerate(Dataset.fetch_data(batch_size=64, self_embedding=self_embedding)):
-            X, Y = Variable(torch.from_numpy(np.array(val[0], np.int32)).long()).cuda(), Variable(torch.from_numpy(np.array(val[1])).long()).cuda()
+            X, Y = Variable(torch.from_numpy(np.array(val[0]))).cuda(), Variable(torch.from_numpy(np.array(val[1]))).cuda()
             #print(X.shape)
             out, _ = net.forward(X)
             #loss = cross_entropy(out, Y)
@@ -111,7 +116,7 @@ def train_net(net, epoch, word2idx, idx2word, self_embedding=None):
             if (idx+1) % 500 == 0:
                 print("idx = %d, loss = %lf" %(idx+1, total_loss / 500))
                 total_loss = 0
-                poem = generate_seq(net, start_words="千山鸟飞绝",prefix=None,word2idx=word2idx, idx2word=idx2word)
+                #poem = generate_seq(net, start_words="千山鸟飞绝",prefix=None,word2idx=word2idx, idx2word=idx2word)
                 #for idx, word in enumerate(poem):
                 #    poem[idx] = idx2word[poem[idx]]
                 print(poem)
@@ -136,9 +141,13 @@ def eval_net(net, word2idx, idx2word, startword, prefix, load_num):
 if __name__ == "__main__":
     data, word2idx, idx2word = get_raw_data()
     if args.task == "seq":
-        net = E_D_net(voc_size = 8300, embedding_dim = 128, hidden_dim = 256)
+        net = bi_E_D_net(voc_size = 8300, embedding_dim = 128, hidden_dim = 256)
     else:
         net = LSTM_net(voc_size = 8300, embedding_dim = 128, hidden_dim = 256)
     net = net.cuda()
-    train_net(net=net, epoch = 1024, word2idx=word2idx, idx2word=idx2word, self_embedding=Word2Vec.load("Word_Vec"))
+    import pickle
+    matrix = pickle.load(open("Word_Vec.pkl", "rb"))
+    #import gensim
+    #matrix = gensim.models.KeyedVectors.load_word2vec_format("Word_Vec")
+    train_net(net=net, epoch = 1024, word2idx=word2idx, idx2word=idx2word, self_embedding=matrix)
     #eval_net(net, word2idx, idx2word, "不如来饮酒", "相对醉厌厌", load_num=64)
