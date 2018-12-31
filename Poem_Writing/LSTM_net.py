@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch
 from torch.autograd import Variable
 import torch.nn.functional as F
+import numpy as np
 
 
 class E_D_net(nn.Module):
@@ -51,6 +52,7 @@ class bi_E_D_net(nn.Module):
         super(bi_E_D_net, self).__init__()
         #self.embedding = nn.Embedding(voc_size, embedding_dim)
         self.embedding = nn.Embedding.from_pretrained(torch.from_numpy(np.array(embedding_matrix)), freeze=False)
+        #self.embedding = nn.Embedding.from_pretrained(Variable(torch.from_numpy(np.array(embedding_matrix))).cuda(), freeze=False)
         self.hidden_size = hidden_dim
         self.encoder = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_dim, num_layers=2, bidirectional=True)
         self.decoder = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_dim, num_layers=2, bidirectional=True)
@@ -59,18 +61,22 @@ class bi_E_D_net(nn.Module):
     def forward(self, x, y, hidden_state=None):
         embed = self.embedding(x)
         embed = torch.transpose(embed, 0, 1)
+        #print(embed.shape)
+        #print(embed)
         if hidden_state == None:
             hidden_state = (Variable(torch.zeros(4, embed.shape[1], self.hidden_size)).cuda(), Variable(torch.zeros(4, embed.shape[1], self.hidden_size)).cuda())
-        _, (encoder_result_h, encoder_result_c) = self.encoder(embed, hidden_state)
+        _, (encoder_result_h, encoder_result_c) = self.encoder(embed)
         zero_input = Variable(torch.zeros(embed.shape[0], embed.shape[1], embed.shape[2])).cuda()  #seqlen bs input_size
         decoder_result, hidden = self.decoder(zero_input, (encoder_result_h, encoder_result_c))
         out_result = torch.transpose(decoder_result, 0, 1)  #bs seqlen hidden_size
+        out_result = out_result.contiguous().view(-1, 2 * 256)
         out_result = self.fc(out_result)
         out_result = nn.Softmax()(out_result)
         out_result = torch.argmax(out_result, dim=1)
         X_embedding = self.embedding(out_result)
         Y_embedding = self.embedding(y.view(-1, 1))
-        loss = nn.MSELoss()(X_embedding, Y_embedding)
+        loss = torch.sum((X_embedding - Y_embedding) * (X_embedding - Y_embedding), dim=1)
+        loss = torch.mean(torch.sum(loss.view(-1, 5), dim=1))
         return out_result, hidden, loss
 
 

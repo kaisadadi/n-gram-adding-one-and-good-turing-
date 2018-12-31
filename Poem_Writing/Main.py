@@ -95,8 +95,10 @@ def train_net(net, epoch, word2idx, idx2word, self_embedding=None):
     load_num = 0
     #net.load_state_dict(torch.load(os.path.join(model_path, "model-%d.pkl" %load_num)))
     embedding = list(map(id, net.embedding.parameters()))
+    #print(embedding)
     base_params = filter(lambda p:id(p) not in embedding, net.parameters())
-    optimizer = torch.optim.Adam([{"params": base_params},{"params": net.embedding.parameters, "lr": 0}], lr=1e-3)
+    optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
+    #optimizer = torch.optim.Adam([{"params": net.encoder.parameters(), "lr":1e-3},{"params":net.decoder.parameters() , "lr":1e-3 }, {"params":net.fc.parameters(), "lr": 1e-3}], lr=0)
     if args.task == "seq":
         Dataset = Seq_Dataset()
     else:
@@ -105,7 +107,7 @@ def train_net(net, epoch, word2idx, idx2word, self_embedding=None):
     for nowepoch in range(load_num, epoch):
         print("epoch = %d" %(nowepoch + 1))
         for idx, val in enumerate(Dataset.fetch_data(batch_size=64, self_embedding=None)):
-            X, Y = Variable(torch.from_numpy(np.array(val[0]))).cuda(), Variable(torch.from_numpy(np.array(val[1]))).cuda()
+            X, Y = Variable(torch.from_numpy(np.array(val[0])).long()).cuda(), Variable(torch.from_numpy(np.array(val[1])).long()).cuda()
             #print(X.shape)
             out, _, loss = net.forward(X, Y)
             #loss = cross_entropy(out, Y)
@@ -139,14 +141,14 @@ def eval_net(net, word2idx, idx2word, startword, prefix, load_num):
     print(poem)
 
 if __name__ == "__main__":
+    import pickle
     data, word2idx, idx2word = get_raw_data()
+    matrix = pickle.load(open("Word_Vec.pkl", "rb"))
     if args.task == "seq":
-        net = bi_E_D_net(voc_size = 8300, embedding_dim = 128, hidden_dim = 256, self_embedding=get_real_embedding_matrix(matrix, idx2word))
+        net = bi_E_D_net(voc_size = 8300, embedding_dim = 128, hidden_dim = 256, embedding_matrix=get_real_embedding_matrix(matrix, idx2word))
     else:
         net = LSTM_net(voc_size = 8300, embedding_dim = 128, hidden_dim = 256)
     net = net.cuda()
-    import pickle
-    matrix = pickle.load(open("Word_Vec.pkl", "rb"))
     #import gensim
     #matrix = gensim.models.KeyedVectors.load_word2vec_format("Word_Vec")
     train_net(net=net, epoch = 1024, word2idx=word2idx, idx2word=idx2word, self_embedding=None)
