@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 from torch.autograd import Variable
+import torch.nn.functional as F
 
 
 class E_D_net(nn.Module):
@@ -45,18 +46,18 @@ class LSTM_net(nn.Module):
         return out_result, hidden
 
 class bi_E_D_net(nn.Module):
-    def __init__(self, voc_size, embedding_dim, hidden_dim):
+    def __init__(self, voc_size, embedding_dim, hidden_dim, embedding_matrix):
         #an LSTM based encoder-decoder framework
         super(bi_E_D_net, self).__init__()
         #self.embedding = nn.Embedding(voc_size, embedding_dim)
+        self.embedding = nn.Embedding.from_pretrained(torch.from_numpy(np.array(embedding_matrix)), freeze=False)
         self.hidden_size = hidden_dim
         self.encoder = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_dim, num_layers=2, bidirectional=True)
         self.decoder = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_dim, num_layers=2, bidirectional=True)
         self.fc = nn.Linear(2 * hidden_dim, voc_size)
 
-    def forward(self, x, hidden_state=None):
-        #embed = self.embedding(x)
-        embed = x
+    def forward(self, x, y, hidden_state=None):
+        embed = self.embedding(x)
         embed = torch.transpose(embed, 0, 1)
         if hidden_state == None:
             hidden_state = (Variable(torch.zeros(4, embed.shape[1], self.hidden_size)).cuda(), Variable(torch.zeros(4, embed.shape[1], self.hidden_size)).cuda())
@@ -65,7 +66,12 @@ class bi_E_D_net(nn.Module):
         decoder_result, hidden = self.decoder(zero_input, (encoder_result_h, encoder_result_c))
         out_result = torch.transpose(decoder_result, 0, 1)  #bs seqlen hidden_size
         out_result = self.fc(out_result)
-        return out_result, hidden
+        out_result = nn.Softmax()(out_result)
+        out_result = torch.argmax(out_result, dim=1)
+        X_embedding = self.embedding(out_result)
+        Y_embedding = self.embedding(y.view(-1, 1))
+        loss = nn.MSELoss()(X_embedding, Y_embedding)
+        return out_result, hidden, loss
 
 
 
