@@ -99,7 +99,7 @@ class Seq_Dataset():
                 try: 
                     out[-1].append(self_embedding[self.idx2word[x[batch][idx]]])
                 except:
-                    gg
+                    out[-1].append(np.random.rand(128))
         return out
 
 if __name__ == "__main__":

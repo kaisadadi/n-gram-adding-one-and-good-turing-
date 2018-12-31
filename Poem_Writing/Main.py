@@ -119,7 +119,7 @@ def train_net(net, epoch, word2idx, idx2word, self_embedding=None):
                 #poem = generate_seq(net, start_words="千山鸟飞绝",prefix=None,word2idx=word2idx, idx2word=idx2word)
                 #for idx, word in enumerate(poem):
                 #    poem[idx] = idx2word[poem[idx]]
-                print(poem)
+                #print(poem)
         #if (nowepoch + 1) % 32 == 0:
         #    torch.save(net.state_dict(), os.path.join(model_path, "model-%d.pkl" %(nowepoch + 1)))
 
