@@ -2,11 +2,13 @@ from DataSet import Poem_DataSet, Seq_Dataset
 from torch.autograd import Variable
 import torch.nn as nn
 import torch
+import torch.nn.functional as F
 from DataSet import get_raw_data
 import numpy as np
 from LSTM_net import LSTM_net, E_D_net, bi_E_D_net
 import argparse
 import os
+from gensim.models import Word2Vec
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--gpu", "-g")
@@ -29,6 +31,18 @@ def cross_entropy(X, Y):
     loss = torch.sum(-Y_onehot * torch.log(X) - (1 - Y_onehot) * torch.log(1 - X), dim=1).view(-1, 5)
     #loss = torch.sum(-Y_onehot * torch.log(X), dim=1).view(-1, 124)
     return torch.mean(torch.sum(loss, dim=1))
+
+def mse_loss(X, Y, self_embedding):
+    seq_size = Y.shape[1]
+    X = X.view(-1, 8300)
+    Y = Y.view(-1, 1)
+    X = nn.Softmax()(X)
+    X = torch.argmax(X)
+    X = F.embedding(X, self_embedding)
+    Y = F.embedding(Y, self_embedding)
+    return nn.MSELoss(X, Y) * seq_size
+
+
 
 def generate_poem(net, start_words, word2idx, idx2word, expected_length = 26):
     #为你写诗，为你静止
@@ -71,12 +85,12 @@ def generate_seq(net, start_words, prefix, word2idx, idx2word, expected_length =
 
 
 
-def train_net(net, epoch, word2idx, idx2word):
+def train_net(net, epoch, word2idx, idx2word, self_embedding=None):
     #train net
     load_num = 0
     #net.load_state_dict(torch.load(os.path.join(model_path, "model-%d.pkl" %load_num)))
-    criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
+    real_embedding = Variable(torch.from_numpy(np.array(get_real_embedding_matrix(self_embedding, idx2word)))).cuda()
     if args.task == "seq":
         Dataset = Seq_Dataset()
     else:
@@ -84,11 +98,12 @@ def train_net(net, epoch, word2idx, idx2word):
     total_loss = 0
     for nowepoch in range(load_num, epoch):
         print("epoch = %d" %(nowepoch + 1))
-        for idx, val in enumerate(Dataset.fetch_data(batch_size=64)):
+        for idx, val in enumerate(Dataset.fetch_data(batch_size=64, self_embedding=self_embedding)):
             X, Y = Variable(torch.from_numpy(np.array(val[0], np.int32)).long()).cuda(), Variable(torch.from_numpy(np.array(val[1])).long()).cuda()
             #print(X.shape)
             out, _ = net.forward(X)
-            loss = cross_entropy(out, Y)
+            #loss = cross_entropy(out, Y)
+            loss = mse_loss(out, Y, real_embedding)
             total_loss += loss.cpu().data.numpy()
             optimizer.zero_grad()
             loss.backward()
@@ -100,8 +115,17 @@ def train_net(net, epoch, word2idx, idx2word):
                 #for idx, word in enumerate(poem):
                 #    poem[idx] = idx2word[poem[idx]]
                 print(poem)
-        if (nowepoch + 1) % 32 == 0:
-            torch.save(net.state_dict(), os.path.join(model_path, "model-%d.pkl" %(nowepoch + 1)))
+        #if (nowepoch + 1) % 32 == 0:
+        #    torch.save(net.state_dict(), os.path.join(model_path, "model-%d.pkl" %(nowepoch + 1)))
+
+def get_real_embedding_matrix(self_embedding, idx2word):
+    real_embedding = []
+    for a in range(8300):
+        try:
+            real_embedding.append(self_embedding[idx2word[a]])
+        except:
+            real_embedding.append(list(np.random.random_sample(size=128)))
+    return real_embedding
 
 
 def eval_net(net, word2idx, idx2word, startword, prefix, load_num):
@@ -112,9 +136,9 @@ def eval_net(net, word2idx, idx2word, startword, prefix, load_num):
 if __name__ == "__main__":
     data, word2idx, idx2word = get_raw_data()
     if args.task == "seq":
-        net = E_D_net(voc_size = 8300, embedding_dim = 512, hidden_dim = 512)
+        net = E_D_net(voc_size = 8300, embedding_dim = 128, hidden_dim = 256)
     else:
         net = LSTM_net(voc_size = 8300, embedding_dim = 128, hidden_dim = 256)
     net = net.cuda()
-    train_net(net=net, epoch = 1024, word2idx=word2idx, idx2word=idx2word)
+    train_net(net=net, epoch = 1024, word2idx=word2idx, idx2word=idx2word, self_embedding=Word2Vec.load("Word_Vec"))
     #eval_net(net, word2idx, idx2word, "不如来饮酒", "相对醉厌厌", load_num=64)

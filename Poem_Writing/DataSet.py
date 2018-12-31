@@ -33,12 +33,14 @@ class Poem_DataSet():
                 out_Y = []
 
 class Seq_Dataset():
-    def __init__(self):
+    def __init__(self, self_embedding = None):
         self.rawdata, self.word2idx, self.idx2word = get_raw_data()
         self.len = len(self.rawdata)
         start_sign = self.word2idx["<START>"]
         break_sign = [self.word2idx["，"], self.word2idx["。"], self.word2idx["<EOP>"]]
         self.data = []
+        self.embedding = self_embedding
+        #f = open("data.txt", "w", encoding="utf8")
         for poem in self.rawdata:
             temp_data = []
             pos = poem.index(start_sign)
@@ -50,9 +52,26 @@ class Seq_Dataset():
             for seq_num in range(len(temp_data) - 1):
                 if len(temp_data[seq_num]) != 5 or len(temp_data[seq_num + 1]) != 5:
                     break
+                #out_data = []
+                #for a in temp_data[seq_num]:
+                #    out_data.append(self.idx2word[a])
+                #    out_data.append(" ")
+                #f.writelines(out_data)
+                #f.write("\n")
                 self.data.append([temp_data[seq_num], temp_data[seq_num + 1]])
+            '''out_data = []
+            try:
+                for a in temp_data[-1]:
+                    out_data.append(self.idx2word[a])
+                    out_data.append(" ")
+                f.writelines(out_data)
+                f.write("\n")
+            except:
+                print(temp_data)'''
 
-    def fetch_data(self, batch_size):
+        #f.close()
+
+    def fetch_data(self, batch_size, self_embedding=False):
         random.shuffle(self.data)
         cnt = 0
         out_X = []
@@ -63,9 +82,18 @@ class Seq_Dataset():
             cnt += 1
             if cnt == batch_size:
                 cnt = 0
-                yield out_X, out_Y
+                if self_embedding == True:
+                    yield out_X, out_Y
+                else:
+                    yield self.embeded(out_X), self.embeded(out_Y)
                 out_X = []
                 out_Y = []
+
+    def embeded(self, x):
+        for batch in range(len(x)):
+            for idx in range(len(x[batch])):
+                x[batch][idx] = self.embedding[self.idx2word[x[batch][idx]]]
+        return x
 
 if __name__ == "__main__":
     '''
